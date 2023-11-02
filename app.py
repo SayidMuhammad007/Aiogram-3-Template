@@ -2,7 +2,8 @@ import asyncio
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.middlewares.request_logging import logger
-from loader import db
+
+from utils.db.mysql import async_main
 
 
 def setup_handlers(dispatcher: Dispatcher) -> None:
@@ -38,20 +39,14 @@ async def setup_aiogram(dispatcher: Dispatcher, bot: Bot) -> None:
 
 
 async def database_connected():
-    # Ma'lumotlar bazasini yaratamiz:
-    await db.create()
-    # await db.drop_users()
-    await db.create_table_users()
+    await async_main()
 
 
 async def aiogram_on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:
     from utils.set_bot_commands import set_default_commands
     from utils.notify_admins import on_startup_notify
-
-    logger.info("Database connected")
-    await database_connected()
-
     logger.info("Starting polling")
+    await database_connected()
     await bot.delete_webhook(drop_pending_updates=True)
     await setup_aiogram(bot=bot, dispatcher=dispatcher)
     await on_startup_notify(bot=bot)
